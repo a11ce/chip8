@@ -1,0 +1,3 @@
+- Edit makefile per your SDL2 location
+- `make`
+- `bin/chip8-[sdl|cli] roms/[rom].ch8`
