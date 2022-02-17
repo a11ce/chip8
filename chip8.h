@@ -26,4 +26,5 @@ chip8_t initChip8();
 void loadRom(chip8_t console, const char *filePath);
 void cycle(chip8_t console);
 
+void printRegs(chip8_t console);
 void printMem(chip8_t console);

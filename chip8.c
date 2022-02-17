@@ -121,6 +121,10 @@ void cycle(chip8_t c) {
       /* TODO carry */
       c->regs[X] += c->regs[Y];
       break;
+    case 0x5:
+      /* TODO borrow */
+      c->regs[X] -= c->regs[Y];
+      break;
     case 0x6:
       c->regs[0xF] = c->regs[X] & 0x01;
       c->regs[X] >>= 1;
@@ -145,12 +149,21 @@ void cycle(chip8_t c) {
     c->memory[0] = 1;
     break;
   case 0xE000:
-    /* TODO input */
     switch
       K {
-      case 0xA1:
-        c->pc += 2;
+      case 0x9E:
+        if (c->keypad[X]) {
+          c->pc += 2;
+        }
         break;
+      case 0xA1:
+        if (!c->keypad[X]) {
+          c->pc += 2;
+        }
+        break;
+      default:
+        fprintf(stderr, "bad op: %x\n", opCode);
+        exit(-1);
       }
     break;
   case 0xF000:
@@ -159,11 +172,13 @@ void cycle(chip8_t c) {
       case 0x07:
         c->regs[X] = c->delay;
         break;
+      case 0x15:
+        c->delay = c->regs[X];
+      case 0x18:
+        c->sound = c->regs[X];
       case 0x1E:
         c->i += c->regs[X];
         break;
-      case 0x15:
-        c->delay = c->regs[X];
       case 0x55:
         for (idx = 0; idx <= (X); ++idx) {
           c->memory[c->i + idx] = c->regs[idx];
@@ -214,7 +229,11 @@ void printRegs(chip8_t console) {
   for (idx = 0; idx < 16; idx++) {
     printf("%02x ", console->regs[idx]);
   }
-  printf("| %x", console->i);
+  printf("| %x | ", console->i);
+  for (idx = 0; idx < 16; idx++) {
+    printf("%d ", console->keypad[idx]);
+  }
+  printf("\n");
 }
 
 void printMem(chip8_t console) {

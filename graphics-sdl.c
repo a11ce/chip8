@@ -1,5 +1,18 @@
 #include "graphics-sdl.h"
 
+/* keypad is
+/  1 2 3 C
+/  4 5 6 D
+/  7 8 9 E
+/  A 0 B F
+/  mapped to
+/  1 2 3 4
+/  Q W E R
+/  A S D F
+/  Z X C V  */
+char keypad[16] = {'x', '1', '2', '3', 'q', 'w', 'e', 'a',
+                   's', 'd', 'z', 'c', '4', 'r', 'f', 'v'};
+
 gfx_ctx_t initGFX() {
   gfx_ctx_t ctx = malloc(sizeof(struct graphicsCTX));
   SDL_Init(SDL_INIT_VIDEO);
@@ -28,6 +41,33 @@ void render(chip8_t console, gfx_ctx_t ctx) {
     SDL_RenderCopy(ctx->renderer, ctx->texture, NULL, NULL);
     SDL_RenderPresent(ctx->renderer);
   }
+}
+
+int procInput(chip8_t console, gfx_ctx_t ctx) {
+  SDL_Event cEvent;
+  int kIdx;
+  (void)console;
+  (void)ctx;
+
+  while (SDL_PollEvent(&cEvent)) {
+    if (cEvent.type == SDL_QUIT) {
+      return 0;
+    }
+    if (cEvent.type == SDL_KEYDOWN) {
+      for (kIdx = 0; kIdx < 16; kIdx++) {
+        if (keypad[kIdx] == cEvent.key.keysym.sym) {
+          console->keypad[kIdx] = 1;
+        }
+      }
+    } else if (cEvent.type == SDL_KEYUP) {
+      for (kIdx = 0; kIdx < 16; kIdx++) {
+        if (keypad[kIdx] == cEvent.key.keysym.sym) {
+          console->keypad[kIdx] = 0;
+        }
+      }
+    }
+  }
+  return 1;
 }
 
 void frameDelay(gfx_ctx_t ctx) {

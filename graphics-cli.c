@@ -20,6 +20,12 @@ void render(chip8_t console, gfx_ctx_t gfxCtx) {
   }
 }
 
+int procInput(chip8_t console, gfx_ctx_t ctx) {
+  (void)console;
+  (void)ctx;
+  return 1;
+}
+
 void frameDelay(gfx_ctx_t ctx) {
   (void)ctx;
   usleep(1670);
