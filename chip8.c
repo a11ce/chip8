@@ -60,6 +60,12 @@ void cycle(chip8_t c) {
   uint16_t opCode = c->memory[c->pc] << 8 | c->memory[c->pc + 1];
 
   c->pc += 2;
+  if (c->sound > 0) {
+    c->sound--;
+  }
+  if (c->delay > 0) {
+    c->delay--;
+  }
 
   switch (opCode & 0xF000) {
   case 0x000:
@@ -74,18 +80,17 @@ void cycle(chip8_t c) {
         c->pc = c->stack[c->sp];
         break;
       default:
-        fprintf(stderr, "bad op: %x\n", opCode);
+        fprintf(stderr, "machine code jumps not supported %x\n", opCode);
         exit(-1);
       }
     break;
-  case 0x1000: {
-    c->pc = opCode & 0x0FFF;
+  case 0x1000:
+    c->pc = N;
     break;
-  }
   case 0x2000:
     c->stack[c->sp] = c->pc;
     c->sp++;
-    c->pc = opCode & 0x0FFF;
+    c->pc = N;
     break;
   case 0x3000:
     if (c->regs[X] == K) {
@@ -94,6 +99,11 @@ void cycle(chip8_t c) {
     break;
   case 0x4000:
     if (c->regs[X] != K) {
+      c->pc += 2;
+    }
+    break;
+  case 0x5000:
+    if (c->regs[X] == c->regs[Y]) {
       c->pc += 2;
     }
     break;
@@ -118,19 +128,23 @@ void cycle(chip8_t c) {
       c->regs[X] ^= c->regs[Y];
       break;
     case 0x4:
-      /* TODO carry */
       c->regs[X] += c->regs[Y];
+      c->regs[0xF] = c->regs[Y] > (0xFF - c->regs[X]);
       break;
     case 0x5:
-      /* TODO borrow */
+      c->regs[0xF] = !(c->regs[Y] > c->regs[X]);
       c->regs[X] -= c->regs[Y];
       break;
     case 0x6:
       c->regs[0xF] = c->regs[X] & 0x01;
       c->regs[X] >>= 1;
       break;
+    case 0x7:
+      c->regs[0xF] = !(c->regs[X] > c->regs[Y]);
+      c->regs[X] = c->regs[Y] - c->regs[X];
+      break;
     case 0xE:
-      c->regs[0xF] = c->regs[X] & 0x80;
+      c->regs[0xF] = c->regs[X] >> 7;
       c->regs[X] <<= 1;
       break;
     default:
@@ -138,11 +152,19 @@ void cycle(chip8_t c) {
       exit(-1);
     }
     break;
+  case 0x9000:
+    if (c->regs[X] != c->regs[Y]) {
+      c->pc += 2;
+    }
+    break;
   case 0xA000:
     c->i = N;
     break;
+  case 0xB000:
+    c->pc = N + c->regs[0];
+    break;
   case 0xC000:
-    c->regs[X] = K & rand();
+    c->regs[X] = K & (rand() % 256);
     break;
   case 0xD000: {
     dxyn(c, opCode);
@@ -152,12 +174,12 @@ void cycle(chip8_t c) {
     switch
       K {
       case 0x9E:
-        if (c->keypad[X]) {
+        if (c->keypad[c->regs[X]]) {
           c->pc += 2;
         }
         break;
       case 0xA1:
-        if (!c->keypad[X]) {
+        if (!c->keypad[c->regs[X]]) {
           c->pc += 2;
         }
         break;
@@ -172,12 +194,31 @@ void cycle(chip8_t c) {
       case 0x07:
         c->regs[X] = c->delay;
         break;
+      case 0x0A:
+        for (idx = 0; idx < 16; idx++) {
+          if (c->keypad[idx]) {
+            c->regs[X] = idx;
+            return; /* !!! */
+          }
+        }
+        c->sp -= 2;
+        break;
       case 0x15:
         c->delay = c->regs[X];
+        break;
       case 0x18:
         c->sound = c->regs[X];
+        break;
       case 0x1E:
         c->i += c->regs[X];
+        break;
+      case 0x29:
+        c->i = (c->regs[X] * 5) + 0x50;
+        break;
+      case 0x33:
+        c->memory[c->i] = c->regs[X] / 100;
+        c->memory[c->i + 1] = (c->regs[X] / 10) % 10;
+        c->memory[c->i + 2] = c->regs[X] % 10;
         break;
       case 0x55:
         for (idx = 0; idx <= (X); ++idx) {
@@ -201,8 +242,6 @@ void cycle(chip8_t c) {
     fprintf(stderr, "bad op: %x\n", opCode);
     exit(-1);
   }
-
-  c->delay--;
 }
 
 void dxyn(chip8_t console, uint16_t opCode) {

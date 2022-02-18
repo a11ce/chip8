@@ -19,8 +19,8 @@ int main(int argc, char *argv[]) {
   loadRom(console, argv[1]);
 
   while (procInput(console, gfxCtx)) {
-    cycle(console);
     frameDelay(gfxCtx);
+    cycle(console);
     render(console, gfxCtx);
   }
   endGFX(gfxCtx);
