@@ -262,22 +262,3 @@ void dxyn(chip8_t console, uint16_t opCode) {
     }
   }
 }
-
-void printRegs(chip8_t console) {
-  int idx;
-  for (idx = 0; idx < 16; idx++) {
-    printf("%02x ", console->regs[idx]);
-  }
-  printf("| %x | ", console->i);
-  for (idx = 0; idx < 16; idx++) {
-    printf("%d ", console->keypad[idx]);
-  }
-  printf("\n");
-}
-
-void printMem(chip8_t console) {
-  int idx;
-  for (idx = 0; idx < 4096; idx++) {
-    putchar(console->memory[idx]);
-  }
-}

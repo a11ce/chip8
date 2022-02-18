@@ -72,10 +72,39 @@ int procInput(chip8_t console, gfx_ctx_t ctx) {
 
 void frameDelay(gfx_ctx_t ctx) {
   (void)ctx;
-  SDL_Delay(1);
+  SDL_Delay(2);
 }
 
 void endGFX(gfx_ctx_t ctx) {
   free(ctx);
   SDL_Quit();
 }
+
+/* UNUSED
+
+void printRegs(chip8_t c) {
+  int idx;
+  uint16_t opCode = c->memory[c->pc] << 8 | c->memory[c->pc + 1];
+  for (idx = 0; idx < 16; idx++) {
+    printf("%02x ", c->regs[idx]);
+  }
+  printf("| %x | %x | ", c->pc, c->i);
+  for (idx = 0; idx < 16; idx++) {
+    if (c->keypad[idx]) {
+      printf("%x", idx);
+    } else {
+      printf("-");
+    }
+  }
+  printf("\n");
+  printf("%04x\n", opCode);
+}
+
+void printMem(chip8_t console) {
+  int idx;
+  for (idx = 0; idx < 4096; idx++) {
+    putchar(console->memory[idx]);
+  }
+}
+
+*/
