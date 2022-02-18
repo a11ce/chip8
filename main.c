@@ -1,6 +1,9 @@
-#include "SDL2/SDL.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
 #include "chip8.h"
-#include "graphics-cli.h"
+#include "graphics-template.h"
 
 int main(int argc, char *argv[]) {
 
@@ -9,7 +12,7 @@ int main(int argc, char *argv[]) {
 
   if (argc < 2) {
     printf("usage:\n\t%s [rom-file]\n", argv[0]);
-    exit(1);
+    return -1;
   }
 
   console = initChip8();
